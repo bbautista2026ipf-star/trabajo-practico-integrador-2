@@ -1,15 +1,50 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { useForm } from "../hooks/useForm";
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
+
   const { formState, handleInputChange } = useForm({
     username: "",
     password: "",
   });
   const { username, password } = formState;
 
-  const handleSubmit = (event) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState([]);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setErrors([]);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formState),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("isLogged", "true");
+        navigate("/home", { state: { message: data.message } });
+      } else if (response.status === 400) {
+        setErrors(data.errors);
+      } else if (response.status === 401) {
+        setError("Usuario o contraseña incorrectos");
+      } else {
+        setError("Ocurrió un error en el servidor, intentá más tarde");
+      }
+    } catch {
+      setError("No se pudo conectar con el servidor");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,11 +77,26 @@ export const LoginPage = () => {
             />
           </label>
 
+          {errors.length > 0 && (
+            <ul className="list-inside list-disc rounded bg-red-100 px-4 py-2 text-sm text-red-700">
+              {errors.map((err) => (
+                <li key={err.msg}>{err.msg}</li>
+              ))}
+            </ul>
+          )}
+
+          {error && (
+            <p className="rounded bg-red-100 px-4 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
+            disabled={isLoading}
             className="rounded bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            Ingresar
+            {isLoading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
 

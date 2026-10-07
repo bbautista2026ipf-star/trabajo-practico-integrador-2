@@ -1,7 +1,10 @@
+import { useLocation } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { useFetch } from "../hooks/useFetch";
 
 export const HomePage = () => {
+  const { state } = useLocation();
+
   const {
     data: articles,
     isLoading,
@@ -17,7 +20,13 @@ export const HomePage = () => {
           Artículos publicados
         </h1>
 
-        {isLoading && <p className="text-gray-600">Cargando artículos...</p>}
+        {state?.message && (
+          <p className="mb-4 rounded bg-green-100 px-4 py-2 text-green-700">
+            {state.message}
+          </p>
+        )}
+
+        {isLoading &&<p className="text-gray-600">Cargando artículos...</p>}
 
         {error && (
           <p className="rounded bg-red-100 px-4 py-2 text-red-700">{error}</p>
