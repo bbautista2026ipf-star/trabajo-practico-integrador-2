@@ -6,6 +6,9 @@ export const useFetch = (url) => {
   const [error, setError] = useState(null);
 
   const getData = async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
       const response = await fetch(url, { credentials: "include" });
       const result = await response.json();
@@ -26,7 +29,9 @@ export const useFetch = (url) => {
     }
   };
 
+  // La petición se repite cada vez que cambia la url
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
