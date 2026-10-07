@@ -1,8 +1,11 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { useForm } from "../hooks/useForm";
 
 export const RegisterPage = () => {
-  const { formState, handleInputChange } = useForm({
+  const navigate = useNavigate();
+
+  const { formState, handleInputChange, handleReset } = useForm({
     first_name: "",
     last_name: "",
     username: "",
@@ -11,8 +14,38 @@ export const RegisterPage = () => {
   });
   const { first_name, last_name, username, email, password } = formState;
 
-  const handleSubmit = (event) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState([]);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setErrors([]);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formState),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        handleReset();
+        navigate("/login", { state: { message: data.message } });
+      } else if (response.status === 400) {
+        setErrors(data.errors);
+      } else {
+        setError("Ocurrió un error en el servidor, intentá más tarde");
+      }
+    } catch {
+      setError("No se pudo conectar con el servidor");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -80,11 +113,26 @@ export const RegisterPage = () => {
             />
           </label>
 
+          {errors.length > 0 && (
+            <ul className="list-inside list-disc rounded bg-red-100 px-4 py-2 text-sm text-red-700">
+              {errors.map((err) => (
+                <li key={err.msg}>{err.msg}</li>
+              ))}
+            </ul>
+          )}
+
+          {error && (
+            <p className="rounded bg-red-100 px-4 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
+            disabled={isLoading}
             className="rounded bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            Registrarme
+            {isLoading ? "Registrando..." : "Registrarme"}
           </button>
         </form>
 
