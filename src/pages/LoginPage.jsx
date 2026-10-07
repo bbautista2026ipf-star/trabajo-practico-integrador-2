@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useForm } from "../hooks/useForm";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
 
   const { formState, handleInputChange } = useForm({
     username: "",
@@ -53,6 +54,12 @@ export const LoginPage = () => {
         <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
           Iniciar sesión
         </h1>
+
+        {state?.message && (
+          <p className="mb-4 rounded bg-green-100 px-4 py-2 text-sm text-green-700">
+            {state.message}
+          </p>
+        )}
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
